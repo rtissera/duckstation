@@ -19,8 +19,8 @@ function retry_command {
   done
 }
 
-if [ "$#" -ne 4 ]; then
-    echo "Syntax: $0 <path to duckstation directory> <path to build directory> <deps prefix> <output name>"
+if [ "$#" -ne 5 ]; then
+    echo "Syntax: $0 <path to duckstation directory> <path to build directory> <deps prefix> <output name> <duckstation-qt|duckstation-mini>"
     exit 1
 fi
 
@@ -29,7 +29,7 @@ BUILDDIR=$2
 DEPSDIR=$3
 NAME=$4
 
-BINARY=duckstation-qt
+BINARY=$5
 APPDIRNAME=DuckStation.AppDir
 STRIP=strip
 
@@ -44,6 +44,24 @@ declare -a MANUAL_LIBS=(
 	"libfreetype.so.6"
 	"libshaderc_ds.so"
 	"libspirv-cross-c-shared.so.0"
+)
+
+declare -a MANUAL_MINI_LIBS=(
+	"libharfbuzz.so"
+	"libjpeg.so.62"
+	"libpng16.so.16"
+	"libSDL3.so.0"
+	"libsharpyuv.so.0"
+	"libwebpdemux.so.2"
+	"libwebpmux.so.3"
+	"libwebp.so.7"
+	"libzip.so.5"
+	"libzstd.so.1"
+
+	"libcpuinfo.so"
+	"libdiscord-rpc.so"
+	"libplutosvg.so.0"
+	"libsoundtouch.so.2"
 )
 
 declare -a MANUAL_QT_LIBS=(
@@ -121,65 +139,81 @@ for i in $(find "$DEPSDIR" -iname '*.so'); do
   strip "$i"
 done
 
-echo "Running linuxdeploy to create AppDir..."
-EXTRA_QT_PLUGINS="core;gui;svg;waylandclient;widgets;xcbqpa" \
-EXTRA_PLATFORM_PLUGINS="libqwayland-egl.so;libqwayland-generic.so" \
-DEPLOY_PLATFORM_THEMES="1" \
-QMAKE="$DEPSDIR/bin/qmake" \
-NO_STRIP="1" \
-$LINUXDEPLOY --plugin qt --appdir="$OUTDIR" --executable="$BUILDDIR/bin/duckstation-qt" ${EXTRA_LIBS_ARGS[@]} \
---desktop-file="$ROOTDIR/scripts/packaging/org.duckstation.DuckStation.desktop" \
---icon-file="$ROOTDIR/scripts/packaging/org.duckstation.DuckStation.png" \
+if [ "${BINARY}" == "duckstation-qt" ]; then
+	echo "Running linuxdeploy to create AppDir..."
+	EXTRA_QT_PLUGINS="core;gui;svg;waylandclient;widgets;xcbqpa" \
+	EXTRA_PLATFORM_PLUGINS="libqwayland-egl.so;libqwayland-generic.so" \
+	DEPLOY_PLATFORM_THEMES="1" \
+	QMAKE="$DEPSDIR/bin/qmake" \
+	NO_STRIP="1" \
+	$LINUXDEPLOY --plugin qt --appdir="$OUTDIR" --executable="$BUILDDIR/bin/$BINARY" ${EXTRA_LIBS_ARGS[@]} \
+	--desktop-file="$ROOTDIR/scripts/packaging/org.duckstation.DuckStation.desktop" \
+	--icon-file="$ROOTDIR/scripts/packaging/org.duckstation.DuckStation.png" \
 
-echo "Copying resources into AppDir..."
-cp -a "$BUILDDIR/bin/resources" "$OUTDIR/usr/bin"
+	echo "Copying resources into AppDir..."
+	cp -a "$BUILDDIR/bin/resources" "$OUTDIR/usr/bin"
 
-# LinuxDeploy's Qt plugin doesn't include Wayland support. So manually copy in the additional Wayland libraries.
-echo "Copying Qt Wayland libraries..."
-for lib in "${MANUAL_QT_LIBS[@]}"; do
-	srcpath="$DEPSDIR/lib/$lib"
-	dstpath="$OUTDIR/usr/lib/$lib"
-	echo "  $srcpath -> $dstpath"
-	cp "$srcpath" "$dstpath"
-	$PATCHELF --set-rpath '$ORIGIN' "$dstpath"
-done
-
-# .. and plugins.
-echo "Copying Qt Wayland plugins..."
-for GROUP in "${MANUAL_QT_PLUGINS[@]}"; do
-	srcpath="$DEPSDIR/plugins/$GROUP"
-	dstpath="$OUTDIR/usr/plugins/$GROUP"
-	echo "  $srcpath -> $dstpath"
-	mkdir -p "$dstpath"
-
-	for srcsopath in $(find "$DEPSDIR/plugins/$GROUP" -iname '*.so'); do
-		# This is ../../ because it's usually plugins/group/name.so
-		soname=$(basename "$srcsopath")
-		dstsopath="$dstpath/$soname"
-		echo "    $srcsopath -> $dstsopath"
-		cp "$srcsopath" "$dstsopath"
-		$PATCHELF --set-rpath '$ORIGIN/../../lib:$ORIGIN' "$dstsopath"
+	# LinuxDeploy's Qt plugin doesn't include Wayland support. So manually copy in the additional Wayland libraries.
+	echo "Copying Qt Wayland libraries..."
+	for lib in "${MANUAL_QT_LIBS[@]}"; do
+		srcpath="$DEPSDIR/lib/$lib"
+		dstpath="$OUTDIR/usr/lib/$lib"
+		echo "  $srcpath -> $dstpath"
+		cp "$srcpath" "$dstpath"
+		$PATCHELF --set-rpath '$ORIGIN' "$dstpath"
 	done
-done
 
-# Why do we have to manually remove these libs? Because the linuxdeploy Qt plugin
-# copies them, not the "main" linuxdeploy binary, and plugins don't inherit the
-# include list...
-for lib in "${REMOVE_LIBS[@]}"; do
-	for libpath in $(find "$OUTDIR/usr/lib" -name "$lib"); do
-		echo "    Removing problematic library ${libpath}."
-		rm -f "$libpath"
+	# .. and plugins.
+	echo "Copying Qt Wayland plugins..."
+	for GROUP in "${MANUAL_QT_PLUGINS[@]}"; do
+		srcpath="$DEPSDIR/plugins/$GROUP"
+		dstpath="$OUTDIR/usr/plugins/$GROUP"
+		echo "  $srcpath -> $dstpath"
+		mkdir -p "$dstpath"
+
+		for srcsopath in $(find "$DEPSDIR/plugins/$GROUP" -iname '*.so'); do
+			# This is ../../ because it's usually plugins/group/name.so
+			soname=$(basename "$srcsopath")
+			dstsopath="$dstpath/$soname"
+			echo "    $srcsopath -> $dstsopath"
+			cp "$srcsopath" "$dstsopath"
+			$PATCHELF --set-rpath '$ORIGIN/../../lib:$ORIGIN' "$dstsopath"
+		done
 	done
-done
+
+	# Why do we have to manually remove these libs? Because the linuxdeploy Qt plugin
+	# copies them, not the "main" linuxdeploy binary, and plugins don't inherit the
+	# include list...
+	for lib in "${REMOVE_LIBS[@]}"; do
+		for libpath in $(find "$OUTDIR/usr/lib" -name "$lib"); do
+			echo "    Removing problematic library ${libpath}."
+			rm -f "$libpath"
+		done
+	done
+fi
+
+if [ "${BINARY}" == "duckstation-mini" ]; then
+	echo "Running linuxdeploy to create AppDir..."
+	DEPLOY_PLATFORM_THEMES="1" \
+	QMAKE="$DEPSDIR/bin/qmake" \
+	NO_STRIP="1" \
+	$LINUXDEPLOY --appdir="$OUTDIR" --executable="$BUILDDIR/bin/$BINARY" ${EXTRA_LIBS_ARGS[@]} \
+	--icon-file="$ROOTDIR/scripts/packaging/org.duckstation.DuckStation.png" \
+
+	echo "Copying resources into AppDir..."
+	cp -a "$BUILDDIR/bin/resources" "$OUTDIR/usr/bin"
+fi
 
 # Restore unstripped deps (for cache).
 rm -fr "$DEPSDIR"
 mv "$DEPSDIR.bak" "$DEPSDIR"
 
 # Fix up translations.
-rm -fr "$OUTDIR/usr/bin/translations"
-mv "$OUTDIR/usr/translations" "$OUTDIR/usr/bin"
-cp -a "$BUILDDIR/bin/translations" "$OUTDIR/usr/bin"
+if [ "${BINARY}" == "duckstation-qt" ]; then
+	rm -fr "$OUTDIR/usr/bin/translations"
+	mv "$OUTDIR/usr/translations" "$OUTDIR/usr/bin"
+	cp -a "$BUILDDIR/bin/translations" "$OUTDIR/usr/bin"
+fi
 
 # Generate AppStream meta-info.
 echo "Generating AppStream metainfo..."

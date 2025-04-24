@@ -65,7 +65,9 @@ jobs:
             ./artifacts/windows-arm64/duckstation-windows-arm64-release.zip
             ./artifacts/windows-arm64/duckstation-windows-arm64-release-symbols.zip
             ./artifacts/linux-x64-appimage/DuckStation-x64.AppImage
+            ./artifacts/linux-x64-appimage/DuckStation-Mini-x64.AppImage
             ./artifacts/linux-x64-sse2-appimage/DuckStation-x64-SSE2.AppImage
+            ./artifacts/linux-x64-sse2-appimage/DuckStation-Mini-x64-SSE2.AppImage
             ./artifacts/linux-arm64-appimage/DuckStation-arm64.AppImage
             ./artifacts/linux-arm64-appimage/DuckStation-Mini-arm64.AppImage
             ./artifacts/linux-armhf-appimage/DuckStation-armhf.AppImage
@@ -90,7 +92,9 @@ jobs:
             ./artifacts/windows-arm64/duckstation-windows-arm64-release.zip
             ./artifacts/windows-arm64/duckstation-windows-arm64-release-symbols.zip
             ./artifacts/linux-x64-appimage/DuckStation-x64.AppImage
+            ./artifacts/linux-x64-appimage/DuckStation-Mini-x64.AppImage
             ./artifacts/linux-x64-sse2-appimage/DuckStation-x64-SSE2.AppImage
+            ./artifacts/linux-x64-sse2-appimage/DuckStation-Mini-x64-SSE2.AppImage
             ./artifacts/linux-arm64-appimage/DuckStation-arm64.AppImage
             ./artifacts/linux-arm64-appimage/DuckStation-Mini-arm64.AppImage
             ./artifacts/linux-armhf-appimage/DuckStation-armhf.AppImage
