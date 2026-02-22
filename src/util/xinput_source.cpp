@@ -547,7 +547,8 @@ std::optional<float> XInputSource::GetCurrentValue(InputBindingKey key)
     const XINPUT_GAMEPAD& state = cd.last_state.Gamepad;
 #define CHECK_AXIS(field, axis, min_value, max_value)                                                                  \
   case axis:                                                                                                           \
-    ret = static_cast<float>(state.field) / ((state.field < 0) ? min_value : max_value);
+    ret = static_cast<float>(state.field) / ((state.field < 0) ? min_value : max_value);                               \
+    break;
 
     // Y axes is inverted in XInput when compared to SDL.
     switch (key.data)
