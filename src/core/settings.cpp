@@ -496,6 +496,7 @@ void Settings::Load(const SettingsInterface& si, const SettingsInterface& contro
   achievements_leaderboard_trackers = si.GetBoolValue("Cheevos", "LeaderboardTrackers", true);
   achievements_sound_effects = si.GetBoolValue("Cheevos", "SoundEffects", true);
   achievements_progress_indicators = si.GetBoolValue("Cheevos", "ProgressIndicators", true);
+  achievements_prefetch_badges = si.GetBoolValue("Cheevos", "PrefetchBadges", false);
   achievements_notification_location =
     ParseNotificationLocation(si.GetStringValue("Cheevos", "NotificationLocation").c_str())
       .value_or(DEFAULT_ACHIEVEMENT_NOTIFICATION_LOCATION);
@@ -830,6 +831,7 @@ void Settings::Save(SettingsInterface& si, bool ignore_base) const
   si.SetBoolValue("Cheevos", "LeaderboardTrackers", achievements_leaderboard_trackers);
   si.SetBoolValue("Cheevos", "SoundEffects", achievements_sound_effects);
   si.SetBoolValue("Cheevos", "ProgressIndicators", achievements_progress_indicators);
+  si.SetBoolValue("Cheevos", "PrefetchBadges", achievements_prefetch_badges);
   si.SetStringValue("Cheevos", "NotificationLocation", GetNotificationLocationName(achievements_notification_location));
   si.SetStringValue("Cheevos", "IndicatorLocation", GetNotificationLocationName(achievements_indicator_location));
   si.SetStringValue("Cheevos", "ChallengeIndicatorMode",

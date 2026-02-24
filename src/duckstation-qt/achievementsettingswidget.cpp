@@ -50,6 +50,7 @@ AchievementSettingsWidget::AchievementSettingsWidget(SettingsWindow* dialog, QWi
     Settings::DEFAULT_ACHIEVEMENT_NOTIFICATION_LOCATION, NotificationLocation::MaxCount);
   SettingWidgetBinder::BindWidgetToBoolSetting(sif, m_ui.leaderboardTrackers, "Cheevos", "LeaderboardTrackers", true);
   SettingWidgetBinder::BindWidgetToBoolSetting(sif, m_ui.soundEffects, "Cheevos", "SoundEffects", true);
+  SettingWidgetBinder::BindWidgetToBoolSetting(sif, m_ui.prefetchBadges, "Cheevos", "PrefetchBadges", false);
   SettingWidgetBinder::BindWidgetToEnumSetting(
     sif, m_ui.challengeIndicatorMode, "Cheevos", "ChallengeIndicatorMode",
     &Settings::ParseAchievementChallengeIndicatorMode, &Settings::GetAchievementChallengeIndicatorModeName,
@@ -63,8 +64,8 @@ AchievementSettingsWidget::AchievementSettingsWidget(SettingsWindow* dialog, QWi
 
   m_ui.changeSoundsLink->setText(
     QStringLiteral("<a href=\"https://github.com/stenzek/duckstation/wiki/Resource-Overrides\"><span "
-                   "style=\"text-decoration: none;\">%1</span></a>")
-      .arg(tr("Change Sounds")));
+                   "style=\"text-decoration: none;\">&nbsp;%1</span></a>")
+      .arg(tr("(Customize)")));
 
   dialog->registerWidgetHelp(m_ui.enable, tr("Enable Achievements"), tr("Unchecked"),
                              tr("When enabled and logged in, DuckStation will scan for achievements on startup."));
@@ -90,9 +91,12 @@ AchievementSettingsWidget::AchievementSettingsWidget(SettingsWindow* dialog, QWi
   dialog->registerWidgetHelp(
     m_ui.soundEffects, tr("Enable Sound Effects"), tr("Checked"),
     tr("Plays sound effects for events such as achievement unlocks and leaderboard submissions."));
+  dialog->registerWidgetHelp(m_ui.prefetchBadges, tr("Prefetch Badges"), tr("Unchecked"),
+                             tr("Downloads all locked achievement badges while starting the game. This will reduce "
+                                "delays in the images being shown when unlocking achievements."));
   dialog->registerWidgetHelp(m_ui.notificationLocation, tr("Notification Location"), tr("Top Left"),
                              tr("Selects the screen location for achievement and leaderboard notifications."));
-  dialog->registerWidgetHelp(m_ui.notificationScale, tr("Notification Scale"), tr("Automatic"),
+  dialog->registerWidgetHelp(m_ui.notificationScale, tr("Notification Size"), tr("Automatic"),
                              tr("Determines the size of achievement notification popups. Automatic will use the same "
                                 "scaling as the Big Picture UI."));
   dialog->registerWidgetHelp(m_ui.notificationScaleCustom, tr("Custom Notification Scale"), tr("100%"),
@@ -103,7 +107,7 @@ AchievementSettingsWidget::AchievementSettingsWidget(SettingsWindow* dialog, QWi
   dialog->registerWidgetHelp(
     m_ui.indicatorLocation, tr("Indicator Location"), tr("Bottom Right"),
     tr("Selects the screen location for challenge/progress indicators, and leaderboard trackers."));
-  dialog->registerWidgetHelp(m_ui.indicatorScale, tr("Indicator Scale"), tr("Automatic"),
+  dialog->registerWidgetHelp(m_ui.indicatorScale, tr("Indicator Size"), tr("Automatic"),
                              tr("Determines the size of challenge/progress indicators. Automatic will use the same "
                                 "scaling as the Big Picture UI."));
   dialog->registerWidgetHelp(m_ui.indicatorScaleCustom, tr("Custom Indicator Scale"), tr("100%"),

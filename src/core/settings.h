@@ -369,6 +369,7 @@ struct Settings : public GPUSettings
   bool achievements_leaderboard_trackers : 1 = true;
   bool achievements_sound_effects : 1 = true;
   bool achievements_progress_indicators : 1 = true;
+  bool achievements_prefetch_badges : 1 = false;
   u8 achievements_notification_duration = DEFAULT_ACHIEVEMENT_NOTIFICATION_TIME;
   u8 achievements_leaderboard_duration = DEFAULT_LEADERBOARD_NOTIFICATION_TIME;
 

@@ -4979,6 +4979,10 @@ void FullscreenUI::DrawAchievementsSettingsPage(std::unique_lock<std::mutex>& se
     bsi, FSUI_ICONVSTR(ICON_FA_MUSIC, "Sound Effects"),
     FSUI_VSTR("Plays sound effects for events such as achievement unlocks and leaderboard submissions."), "Cheevos",
     "SoundEffects", true, enabled);
+  DrawToggleSetting(bsi, FSUI_ICONVSTR(ICON_FA_DOWNLOAD, "Prefetch Badges"),
+                    FSUI_VSTR("Downloads all locked achievement badges while starting the game. This will reduce "
+                              "delays in the images being shown when unlocking achievements."),
+                    "Cheevos", "PrefetchBadges", false, enabled);
 
   DrawEnumSetting(bsi, FSUI_ICONVSTR(ICON_FA_ENVELOPE, "Notification Location"),
                   FSUI_VSTR("Selects the screen location for achievement and leaderboard notifications."), "Cheevos",
@@ -5038,7 +5042,7 @@ void FullscreenUI::DrawAchievementsSettingsPage(std::unique_lock<std::mutex>& se
     if (is_custom)
       DrawIntSpinBoxSetting(bsi, custom_title, custom_summary, "Cheevos", key, 100, 1, 500, 1, "%d%%", enabled);
   };
-  draw_scale_setting("NotificationScale", FSUI_ICONVSTR(ICON_FA_MAGNIFYING_GLASS, "Notification Scale"),
+  draw_scale_setting("NotificationScale", FSUI_ICONVSTR(ICON_FA_MAGNIFYING_GLASS, "Notification Size"),
                      FSUI_VSTR("Determines the size of achievement notification popups."),
                      FSUI_ICONVSTR(ICON_FA_EXPAND, "Custom Notification Scale"),
                      FSUI_VSTR("Sets the custom scale percentage for achievement notifications."));

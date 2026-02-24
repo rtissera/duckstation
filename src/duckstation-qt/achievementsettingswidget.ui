@@ -228,22 +228,33 @@
        </layout>
       </item>
       <item row="2" column="0">
-       <widget class="QCheckBox" name="soundEffects">
-        <property name="text">
-         <string>Enable Sound Effects</string>
+       <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="0,1">
+        <property name="spacing">
+         <number>0</number>
         </property>
-       </widget>
+        <item>
+         <widget class="QCheckBox" name="soundEffects">
+          <property name="text">
+           <string>Enable Sound Effects</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="changeSoundsLink">
+          <property name="openExternalLinks">
+           <bool>true</bool>
+          </property>
+          <property name="textInteractionFlags">
+           <set>Qt::TextInteractionFlag::LinksAccessibleByKeyboard|Qt::TextInteractionFlag::LinksAccessibleByMouse</set>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
       <item row="2" column="1">
-       <widget class="QLabel" name="changeSoundsLink">
-        <property name="alignment">
-         <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-        </property>
-        <property name="openExternalLinks">
-         <bool>true</bool>
-        </property>
-        <property name="textInteractionFlags">
-         <set>Qt::TextInteractionFlag::LinksAccessibleByKeyboard|Qt::TextInteractionFlag::LinksAccessibleByMouse</set>
+       <widget class="QCheckBox" name="prefetchBadges">
+        <property name="text">
+         <string>Prefetch Badges</string>
         </property>
        </widget>
       </item>
@@ -260,7 +271,7 @@
       <item row="4" column="0">
        <widget class="QLabel" name="notificationScaleLabel">
         <property name="text">
-         <string>Notification Scale:</string>
+         <string>Notification Size:</string>
         </property>
        </widget>
       </item>
@@ -316,7 +327,7 @@
       <item row="2" column="0">
        <widget class="QLabel" name="indicatorScaleLabel">
         <property name="text">
-         <string>Indicator Scale:</string>
+         <string>Indicator Size:</string>
         </property>
        </widget>
       </item>
