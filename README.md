@@ -185,8 +185,8 @@ Requirements:
  - Visual Studio 2026 or newer with the "Desktop development with C++" workload installed.
 
 1. Clone the respository: `git clone https://github.com/stenzek/duckstation.git`.
-2. Download the dependencies pack from https://github.com/stenzek/duckstation-ext-qt-minimal/releases/download/latest/deps-x64.7z, and extract it to `dep\msvc`.
-3. Open the Visual Studio solution `duckstation.sln` in the root, or "Open Folder" for cmake build.
+2. Download the dependencies pack from https://github.com/duckstation/dependencies. You'll need the `deps-windows-x64.7z` file, and `deps-windows-arm64.7z` if you want to cross-compile for ARM64. Extract these archives to `dep\prebuilt`.
+3. Open the Visual Studio solution `duckstation.sln` in the root (recommended), or "Open Folder" for CMake build (not recommended/supported).
 4. Build solution.
 5. Binaries are located in `bin/x64`.
 6. Run `duckstation-qt-x64-Release.exe` or whichever config you used.
@@ -208,8 +208,8 @@ alsa-lib-devel autoconf automake brotli-devel clang cmake dbus-devel egl-wayland
 #### Building
 
 1. Clone the repository: `git clone https://github.com/stenzek/duckstation.git`, `cd duckstation`.
-2. Build dependencies. You can save these outside of the tree if you like. This will take a while. `scripts/deps/build-dependencies-linux.sh deps`.
-3. Run CMake to configure the build system. Assuming a build subdirectory of `build-release`, run `cmake -B build-release -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_EXE_LINKER_FLAGS_INIT="-fuse-ld=lld" -DCMAKE_MODULE_LINKER_FLAGS_INIT="-fuse-ld=lld" -DCMAKE_SHARED_LINKER_FLAGS_INIT="-fuse-ld=lld" -DCMAKE_PREFIX_PATH="$PWD/deps" -G Ninja`. If you want a release (optimized) build, include `-DCMAKE_BUILD_TYPE=Release -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON`.
+2. Download the dependencies pack from https://github.com/duckstation/dependencies. You'll need the `deps-linux-x64.tar.xz` file, and the cross variants if you want to cross-compile for ARM. Extract these archives to `dep\prebuilt`.
+3. Run CMake to configure the build system. Assuming a build subdirectory of `build-release`, run `cmake -B build-release -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_EXE_LINKER_FLAGS_INIT="-fuse-ld=lld" -DCMAKE_MODULE_LINKER_FLAGS_INIT="-fuse-ld=lld" -DCMAKE_SHARED_LINKER_FLAGS_INIT="-fuse-ld=lld" -G Ninja`. If you want a release (optimized) build, include `-DCMAKE_BUILD_TYPE=Release -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON`.
 4. Compile the source code. For the example above, run `ninja -C build-release`
 5. Run the binary, located in the build directory under `./build-release/bin/duckstation-qt`.
 
@@ -220,8 +220,8 @@ Requirements:
  - Xcode
 
 1. Clone the repository: `git clone https://github.com/stenzek/duckstation.git`.
-2. Build the dependencies. This will take a while. `scripts/deps/build-dependencies-mac.sh deps`.
-2. Run CMake to configure the build system: `cmake -Bbuild-release -DCMAKE_BUILD_TYPE=Release -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON -DCMAKE_PREFIX_PATH="$PWD/deps"`. 
+2. Download the dependencies pack from https://github.com/duckstation/dependencies. You'll need the ` deps-macos-universal.tar.xz` file. Extract the archives to `dep\prebuilt`.
+3. Run CMake to configure the build system: `cmake -Bbuild-release -DCMAKE_BUILD_TYPE=Release -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON`. 
 4. Compile the source code: `cmake --build build-release --parallel`.
 5. Run the binary, located in the build directory under `bin/DuckStation.app`.
 
