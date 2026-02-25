@@ -30,6 +30,11 @@ jobs:
             artifact: "linux-x64-mini-appimage"
             cmakeoptions: "-DBUILD_QT_FRONTEND=OFF -DBUILD_MINI_FRONTEND=ON"
             packagescript: "scripts/appimage/make-appimage-mini.sh"
+          - name: "x64 Mini SSE2"
+            asset: "DuckStation-Mini-x64-SSE2.AppImage"
+            artifact: "linux-x64-mini-sse2-appimage"
+            cmakeoptions: "-DBUILD_QT_FRONTEND=OFF -DBUILD_MINI_FRONTEND=ON -DDISABLE_SSE4=ON"
+            packagescript: "scripts/appimage/make-appimage-mini.sh"
     steps:
     - uses: actions/checkout@v6
       with:
