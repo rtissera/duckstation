@@ -34,24 +34,17 @@ STRIP=strip
 
 declare -a MANUAL_LIBS=(
 	"libz.so.1"
-	"libbacktrace.so.0"
-	"libcpuinfo.so"
+	"libavcodec.so.62"
+	"libavformat.so.62"
+	"libavutil.so.60"
+	"libswscale.so.9"
+	"libswresample.so.6"
 	"libdiscord-rpc.so"
 	"libfreetype.so.6"
 	"libharfbuzz.so"
-	"libjpeg.so.62"
-	"libplutosvg.so.0"
-	"libpng16.so.16"
 	"libSDL3.so.0"
 	"libshaderc_shared.so"
-	"libsharpyuv.so.0"
-	"libsoundtouch.so.2"
 	"libspirv-cross-c-shared.so.0"
-	"libwebp.so.7"
-	"libwebpdemux.so.2"
-	"libwebpmux.so.3"
-	"libzip.so.5"
-	"libzstd.so.1"
 )
 
 set -e
