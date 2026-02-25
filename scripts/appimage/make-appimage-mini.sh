@@ -113,8 +113,10 @@ cp -a "$BUILDDIR/bin/resources" "$OUTDIR/usr/bin"
 rm -fr "$DEPSDIR"
 mv "$DEPSDIR.bak" "$DEPSDIR"
 
-# Copy translations.
-cp -a "$BUILDDIR/bin/translations" "$OUTDIR/usr/bin"
+# Copy translations if present (only built with Qt frontend).
+if [ -d "$BUILDDIR/bin/translations" ]; then
+	cp -a "$BUILDDIR/bin/translations" "$OUTDIR/usr/bin"
+fi
 
 # Generate AppStream meta-info.
 echo "Generating AppStream metainfo..."
