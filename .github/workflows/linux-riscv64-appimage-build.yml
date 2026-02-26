@@ -1,0 +1,113 @@
+name: 🐧 Linux RISC-V AppImage
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: "riscv64"
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/rtissera/cross-build-riscv64:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GHCR_TOKEN }}
+
+    timeout-minutes: 240
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+
+    - name: Download Dependencies
+      env:
+        DEPS_VERSION: "release-20260226"
+      run: |
+        cd dep/prebuilt
+        curl --retry 5 --retry-all-errors -LO "https://github.com/rtissera/dependencies/releases/download/$DEPS_VERSION/deps-linux-x64.tar.xz"
+        curl --retry 5 --retry-all-errors -LO "https://github.com/rtissera/dependencies/releases/download/$DEPS_VERSION/deps-linux-cross-riscv64.tar.xz"
+        tar -xf "deps-linux-x64.tar.xz"
+        tar -xf "deps-linux-cross-riscv64.tar.xz"
+        rm "deps-linux-x64.tar.xz" "deps-linux-cross-riscv64.tar.xz"
+
+    - name: Download Patch Archives
+      shell: bash
+      run: |
+        cd data/resources
+        curl --retry 5 --retry-all-errors -LO "https://github.com/duckstation/chtdb/releases/download/latest/cheats.zip"
+        curl --retry 5 --retry-all-errors -LO "https://github.com/duckstation/chtdb/releases/download/latest/patches.zip"
+
+    # Work around container ownership issue
+    - name: Set Safe Directory
+      shell: bash
+      run: git config --global --add safe.directory "*"
+
+    - name: Install Host Build Dependencies
+      env:
+        CMAKE_VERSION: "3.31.6"
+      run: |
+        apt-get update && apt-get install -y extra-cmake-modules file
+        wget -q "https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-x86_64.tar.gz"
+        tar xf "cmake-${CMAKE_VERSION}-linux-x86_64.tar.gz" --strip-components=1 -C /usr/local
+        rm "cmake-${CMAKE_VERSION}-linux-x86_64.tar.gz"
+        cmake --version
+
+    - name: Create Binary Aliases
+      run: |
+        ln -s llvm-strip-19 /usr/bin/llvm-strip
+
+    - name: Set Up Toolchain File
+      run: |
+        GCC_INSTALL_DIR="/usr/lib/gcc-cross/riscv64-linux-gnu/11"
+        cp "dep/prebuilt/linux-cross-riscv64/toolchain.cmake" "$HOME/toolchain.cmake"
+        echo "set(CMAKE_FIND_ROOT_PATH \"$PWD/dep/prebuilt/linux-cross-riscv64;/riscv64-chroot\")" >> "$HOME/toolchain.cmake"
+        echo 'set(CMAKE_C_COMPILER clang-19)' >> "$HOME/toolchain.cmake"
+        echo 'set(CMAKE_C_COMPILER_AR llvm-ar-19)' >> "$HOME/toolchain.cmake"
+        echo 'set(CMAKE_C_COMPILER_RANLIB llvm-ranlib-19)' >> "$HOME/toolchain.cmake"
+        echo 'set(CMAKE_CXX_COMPILER clang++-19)' >> "$HOME/toolchain.cmake"
+        echo 'set(CMAKE_CXX_COMPILER_AR llvm-ar-19)' >> "$HOME/toolchain.cmake"
+        echo 'set(CMAKE_CXX_COMPILER_RANLIB llvm-ranlib-19)' >> "$HOME/toolchain.cmake"
+        echo "set(CMAKE_C_FLAGS_INIT \"--gcc-install-dir=$GCC_INSTALL_DIR\")" >> "$HOME/toolchain.cmake"
+        echo "set(CMAKE_CXX_FLAGS_INIT \"--gcc-install-dir=$GCC_INSTALL_DIR\")" >> "$HOME/toolchain.cmake"
+        echo 'set(CMAKE_EXE_LINKER_FLAGS_INIT "-fuse-ld=lld")' >> "$HOME/toolchain.cmake"
+        echo 'set(CMAKE_MODULE_LINKER_FLAGS_INIT "-fuse-ld=lld")' >> "$HOME/toolchain.cmake"
+        echo 'set(CMAKE_SHARED_LINKER_FLAGS_INIT "-fuse-ld=lld")' >> "$HOME/toolchain.cmake"
+
+    - name: Tag as Preview Release
+      if: github.ref == 'refs/heads/master'
+      run: |
+        echo '#pragma once' > src/scmversion/tag.h
+        echo '#define UPDATER_RELEASE_CHANNEL "preview"' >> src/scmversion/tag.h
+        echo '#define UPDATER_RELEASE_IS_OFFICIAL 1' >> src/scmversion/tag.h
+
+    - name: Tag as Stable Release
+      if: github.ref == 'refs/heads/dev'
+      run: |
+        echo '#pragma once' > src/scmversion/tag.h
+        echo '#define UPDATER_RELEASE_CHANNEL "latest"' >> src/scmversion/tag.h
+        echo '#define UPDATER_RELEASE_IS_OFFICIAL 1' >> src/scmversion/tag.h
+
+    - name: Generate CMake
+      shell: bash
+      run: |
+        cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON -DCMAKE_TOOLCHAIN_FILE="$HOME/toolchain.cmake" -DHOST_MIN_PAGE_SIZE=4096 -DHOST_MAX_PAGE_SIZE=4096 -DHOST_CACHE_LINE_SIZE=64 -DBUILD_QT_FRONTEND=OFF -DBUILD_MINI_FRONTEND=ON -DECM_DIR=/usr/share/ECM/cmake
+
+    - name: Compile Build
+      shell: bash
+      env:
+        RUNTIME_BASE_URL: "https://github.com/rtissera/type2-runtime/releases/download/continuous"
+      run: |
+        cmake --build build --parallel
+        scripts/appimage/make-cross-appimage.sh duckstation-mini riscv64 "$(realpath build)" "/riscv64-chroot"
+
+    - name: Upload AppImage
+      uses: actions/upload-artifact@v6
+      with:
+        name: "linux-riscv64-appimage"
+        path: "DuckStation-Mini-riscv64.AppImage"
+        compression-level: 0
+        if-no-files-found: error

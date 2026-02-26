@@ -45,6 +45,10 @@ elif [ "$ARCH" == "armhf" ]; then
 	DEBARCH="armhf"
 	RUNTIMEARCH="armhf"
 	TRIPLE="arm-linux-gnueabihf"
+elif [ "$ARCH" == "riscv64" ]; then
+	DEBARCH="riscv64"
+	RUNTIMEARCH="riscv64"
+	TRIPLE="riscv64-linux-gnu"
 else
 	echo "Unknown arch ${ARCH}."
 	exit 1
@@ -231,7 +235,8 @@ if [ ! -f "$APPIMAGETOOL" ]; then
 fi
 
 if [ ! -f "$APPIMAGERUNTIME" ]; then
-	retry_command wget -O "$APPIMAGERUNTIME" https://github.com/stenzek/type2-runtime/releases/download/continuous/runtime-${RUNTIMEARCH}
+	RUNTIME_BASE_URL="${RUNTIME_BASE_URL:-https://github.com/stenzek/type2-runtime/releases/download/continuous}"
+	retry_command wget -O "$APPIMAGERUNTIME" "${RUNTIME_BASE_URL}/runtime-${RUNTIMEARCH}"
 fi
 
 OUTDIR=$(realpath "./$APPDIRNAME")
@@ -240,7 +245,10 @@ mkdir "$OUTDIR"
 mkdir -p "$OUTDIR/usr/bin" "$OUTDIR/usr/lib"
 
 echo "Copying binary and resources..."
-cp -a "$BUILDDIR/bin/$BINARY" "$BUILDDIR/bin/resources" "$BUILDDIR/bin/translations" "$OUTDIR/usr/bin"
+cp -a "$BUILDDIR/bin/$BINARY" "$BUILDDIR/bin/resources" "$OUTDIR/usr/bin"
+if [ -d "$BUILDDIR/bin/translations" ]; then
+	cp -a "$BUILDDIR/bin/translations" "$OUTDIR/usr/bin"
+fi
 
 # Patch RPATH so the binary goes hunting for shared libraries in the AppDir instead of system.
 echo "Patching RPATH in ${BINARY}..."
@@ -321,9 +329,14 @@ done
 echo "Copying desktop/icon..."
 mkdir -p "$OUTDIR/usr/share/applications"
 mkdir -p "$OUTDIR/usr/share/icons/hicolor/512x512/apps"
-cp -v "$SCRIPTDIR/org.duckstation.DuckStation.desktop" "$OUTDIR/usr/share/applications"
+if [ "$BINARY" == "duckstation-mini" ]; then
+	DESKTOPFILE="org.duckstation.DuckStation.Mini.desktop"
+else
+	DESKTOPFILE="org.duckstation.DuckStation.desktop"
+fi
+cp -v "$SCRIPTDIR/$DESKTOPFILE" "$OUTDIR/usr/share/applications"
 cp -v "$SCRIPTDIR/org.duckstation.DuckStation.png" "$OUTDIR/usr/share/icons/hicolor/512x512/apps"
-ln -s "usr/share/applications/org.duckstation.DuckStation.desktop" "$OUTDIR"
+ln -s "usr/share/applications/$DESKTOPFILE" "$OUTDIR"
 ln -s "usr/share/icons/hicolor/512x512/apps/org.duckstation.DuckStation.png" "$OUTDIR"
 
 # Generate AppStream meta-info.
@@ -347,4 +360,10 @@ rm -f "$APPIMAGENAME.AppImage"
 
 # Can't run the appimage in a docker container because no fuse, so extract it first.
 "$APPIMAGETOOL" --appimage-extract
-"$PWD/squashfs-root/AppRun" -v --runtime-file "$APPIMAGERUNTIME" "$OUTDIR" "$APPIMAGENAME.AppImage"
+export ARCH
+"$PWD/squashfs-root/AppRun" -v --runtime-file "$APPIMAGERUNTIME" "$OUTDIR" "$APPIMAGENAME.AppImage" \
+	|| { echo "appimagetool failed (arch=$ARCH not supported?), creating AppImage manually..."; \
+	     "$PWD/squashfs-root/usr/bin/mksquashfs" "$OUTDIR" _temp.squashfs -root-owned -noappend -comp zstd -quiet; \
+	     cat "$APPIMAGERUNTIME" _temp.squashfs > "$APPIMAGENAME.AppImage"; \
+	     chmod +x "$APPIMAGENAME.AppImage"; \
+	     rm _temp.squashfs; }

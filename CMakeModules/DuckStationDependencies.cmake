@@ -25,6 +25,8 @@ elseif(LINUX)
     set(DEPS_PATH "${CMAKE_SOURCE_DIR}/dep/prebuilt/linux${DEPS_CROSS_PREFIX}-armhf")
   elseif(CPU_ARCH_ARM64)
     set(DEPS_PATH "${CMAKE_SOURCE_DIR}/dep/prebuilt/linux${DEPS_CROSS_PREFIX}-arm64")
+  elseif(CPU_ARCH_RISCV64)
+    set(DEPS_PATH "${CMAKE_SOURCE_DIR}/dep/prebuilt/linux${DEPS_CROSS_PREFIX}-riscv64")
   else()
     message(FATAL_ERROR "Unsupported architecture")
   endif()
@@ -47,7 +49,7 @@ if(NOT WIN32 AND NOT APPLE)
 endif()
 
 # libpng relies on zlib, which we need the system version for on Mac.
-if(APPLE OR CPU_ARCH_ARM32 OR CPU_ARCH_ARM64)
+if(APPLE OR CPU_ARCH_ARM32 OR CPU_ARCH_ARM64 OR CPU_ARCH_RISCV64)
   find_package(ZLIB REQUIRED)
 else()
   find_package(ZLIB 1.3.1 REQUIRED
